@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Eksekutif - Barumba Rental</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN untuk Grafik Visual -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body
+    class="bg-slate-50 font-sans antialiased text-slate-800"
+    onload="initDashboard()"
+  >
+    <div class="min-h-screen flex flex-col md:flex-row">
+      <!-- SIDEBAR NAVIGASI MODERN -->
+      <aside
+        class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col shadow-xl justify-between"
+      >
+        <div>
+          <div class="p-6 border-b border-slate-800">
+            <h1
+              class="text-xl font-extrabold text-white tracking-wider flex items-center gap-2"
+            >
+              <span class="text-indigo-500"></span> BARUMBA DASHBOARD
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">
+              Sistem Kontrol & Monitoring
+            </p>
+          </div>
+          <nav class="p-4 space-y-2">
+            <button
+              onclick="switchPage('utama')"
+              id="nav-utama"
+              class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+            >
+              📊 Dashboard Utama
+            </button>
+            <button
+              onclick="switchPage('ps')"
+              id="nav-ps"
+              class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition hover:bg-slate-800 text-slate-300"
+            >
+              🎮 Kontrol PlayStation
+            </button>
+            <button
+              onclick="switchPage('sepatu')"
+              id="nav-sepatu"
+              class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition hover:bg-slate-800 text-slate-300"
+            >
+              👟 Kontrol Sepatu
+            </button>
+          </nav>
+        </div>
+        <div
+          class="p-4 border-t border-slate-800 text-xs text-slate-500 text-center"
+        >
+          &copy; 2026 Barumba Studio
+        </div>
+      </aside>
+
+      <!-- KONTEN UTAMA HALAMAN -->
+      <main class="flex-grow p-6 md:p-10 overflow-y-auto">
+        <!-- HEADER ATAS -->
+        <header
+          class="flex justify-between items-center mb-8 pb-4 border-b border-slate-200"
+        >
+          <div>
+            <h2 id="pageTitle" class="text-2xl font-bold text-slate-900">
+              Ringkasan Pendapatan & Performa
+            </h2>
+            <p id="pageDesc" class="text-sm text-slate-500">
+              Monitoring real-time seluruh unit penyewaan.
+            </p>
+          </div>
+          <button
+            onclick="initDashboard()"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-md shadow-indigo-600/20 transition flex items-center gap-2"
+          >
+            Refresh Data
+          </button>
+        </header>
+
+        <!-- ================= PAGE 1: DASHBOARD UTAMA ================= -->
+        <section id="page-utama" class="space-y-8">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div
+              class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                >
+                  Total Pendapatan Futsal
+                </p>
+                <h3
+                  id="valFutsal"
+                  class="text-2xl font-extrabold text-slate-900 mt-1"
+                >
+                  Rp 0
+                </h3>
+              </div>
+              <div
+                class="p-3 bg-emerald-50 text-emerald-600 rounded-2xl text-2xl"
+              >
+                ⚽
+              </div>
+            </div>
+            <div
+              class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                >
+                  Total Pendapatan PS
+                </p>
+                <h3
+                  id="valPS"
+                  class="text-2xl font-extrabold text-slate-900 mt-1"
+                >
+                  Rp 0
+                </h3>
+              </div>
+              <div
+                class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl text-2xl"
+              >
+                🎮
+              </div>
+            </div>
+            <div
+              class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                >
+                  Total Pendapatan Sepatu
+                </p>
+                <h3
+                  id="valSepatu"
+                  class="text-2xl font-extrabold text-slate-900 mt-1"
+                >
+                  Rp 0
+                </h3>
+              </div>
+              <div class="p-3 bg-amber-50 text-amber-600 rounded-2xl text-2xl">
+                👟
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div
+              class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100"
+            >
+              <h3 class="text-base font-bold text-slate-800 mb-4">
+                Grafik Penyewaan Unit PS Tertinggi
+              </h3>
+              <div class="relative h-64"><canvas id="chartPS"></canvas></div>
+            </div>
+            <div
+              class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100"
+            >
+              <h3 class="text-base font-bold text-slate-800 mb-4">
+                Grafik Penyewaan Sepatu Berdasarkan Size
+              </h3>
+              <div class="relative h-64">
+                <canvas id="chartSepatu"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 max-w-xl mx-auto"
+          >
+            <h3 class="text-base font-bold text-slate-800 mb-4 text-center">
+              Persentase Pendapatan Tiap Kategori
+            </h3>
+            <div class="relative h-64 flex justify-center">
+              <canvas id="chartPie"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 2: DASHBOARD PS ================= -->
+        <section id="page-ps" class="space-y-8 hidden">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div
+              class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                >
+                  Total Unit PS Tersewa (Aktif)
+                </p>
+                <h3
+                  id="valPsTersewa"
+                  class="text-3xl font-extrabold text-red-600 mt-1"
+                >
+                  0
+                </h3>
+              </div>
+            </div>
+            <div
+              class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                >
+                  Total Unit PS Tersedia (Kosong)
+                </p>
+                <h3
+                  id="valPsTersedia"
+                  class="text-3xl font-extrabold text-emerald-600 mt-1"
+                >
+                  0
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6"
+          >
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-bold text-slate-800">
+                Manajemen & Manipulasi Unit PlayStation
+              </h3>
+              <button
+                onclick="openModalTambahPS()"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow transition"
+              >
+                + Tambah Unit Baru
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr
+                    class="bg-slate-50 text-slate-500 uppercase text-xs font-bold"
+                  >
+                    <th class="py-3 px-4">ID Unit</th>
+                    <th class="py-3 px-4">Nama Unit</th>
+                    <th class="py-3 px-4">Harga / Jam</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4 text-center">Aksi (Hapus Unit)</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="tabelStokPS"
+                  class="divide-y divide-slate-100 text-slate-700"
+                >
+                  <tr>
+                    <td colspan="5" class="py-6 text-center text-slate-400">
+                      Memuat data unit PS...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 3: DASHBOARD SEPATU ================= -->
+        <section id="page-sepatu" class="space-y-8 hidden">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div
+              class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                >
+                  Total Pasang Sepatu Tersewa
+                </p>
+                <h3
+                  id="valSepatuTersewa"
+                  class="text-3xl font-extrabold text-amber-600 mt-1"
+                >
+                  0
+                </h3>
+              </div>
+            </div>
+            <div
+              class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                >
+                  Total Pasang Sepatu Tersedia
+                </p>
+                <h3
+                  id="valSepatuTersedia"
+                  class="text-3xl font-extrabold text-emerald-600 mt-1"
+                >
+                  0
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabel Manipulasi & Tambah/Hapus Size Sepatu -->
+          <div
+            class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6"
+          >
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-bold text-slate-800">
+                Manajemen Master Stok & Harga Sepatu
+              </h3>
+              <button
+                onclick="openModalTambahSepatu()"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow transition"
+              >
+                + Tambah Size Baru
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr
+                    class="bg-slate-50 text-slate-500 uppercase text-xs font-bold"
+                  >
+                    <th class="py-3 px-4">Ukuran (Size)</th>
+                    <th class="py-3 px-4">Harga Sewa</th>
+                    <th class="py-3 px-4">Stok Tersedia</th>
+                    <th class="py-3 px-4">Sedang Dipinjam</th>
+                    <th class="py-3 px-4 text-center">Tambah / Kurangi Stok</th>
+                    <th class="py-3 px-4 text-center">Aksi Hapus Size</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="tabelStokSepatu"
+                  class="divide-y divide-slate-100 text-slate-700"
+                >
+                  <tr>
+                    <td colspan="6" class="py-6 text-center text-slate-400">
+                      Memuat stok sepatu...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- MODAL POP-UP MODERN UNIVERSAL -->
+    <div
+      id="appModal"
+      class="fixed inset-0 bg-slate-900/50 hidden justify-center items-center p-4 z-50 transition-all"
+    >
+      <div
+        class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center transform scale-95 transition-all"
+        id="modalBox"
+      >
+        <div id="modalIcon" class="text-4xl mb-3">ℹ️</div>
+        <h3 id="modalTitle" class="text-lg font-bold text-slate-800 mb-2">
+          Notifikasi Sistem
+        </h3>
+        <p id="modalMessage" class="text-sm text-slate-600 mb-6">
+          Pesan informasi.
+        </p>
+        <div id="modalButtons" class="flex justify-center gap-3">
+          <button
+            onclick="closeModal()"
+            class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium shadow transition text-sm"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL TAMBAH UNIT PS -->
+    <div
+      id="modalTambahPS"
+      class="fixed inset-0 bg-slate-900/50 hidden justify-center items-center p-4 z-50"
+    >
+      <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+        <h3 class="text-lg font-bold text-slate-800 mb-4">
+          Tambah Unit PlayStation Baru
+        </h3>
+        <form onsubmit="submitTambahPS(event)">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-700 mb-1"
+              >Nama Unit (Contoh: PS5 - Unit 02)</label
+            >
+            <input
+              type="text"
+              id="inputNamaPS"
+              required
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
+            />
+          </div>
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-slate-700 mb-1"
+              >Tarif Harga per Jam (Rp)</label
+            >
+            <input
+              type="number"
+              id="inputHargaPS"
+              required
+              value="10000"
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
+            />
+          </div>
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              onclick="closeModalPS()"
+              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium shadow"
+            >
+              Simpan Unit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL TAMBAH SIZE / PASANG SEPATU BARU -->
+    <div
+      id="modalTambahSepatu"
+      class="fixed inset-0 bg-slate-900/50 hidden justify-center items-center p-4 z-50"
+    >
+      <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+        <h3 class="text-lg font-bold text-slate-800 mb-4">
+          Tambah Master Size Sepatu Baru
+        </h3>
+        <form onsubmit="submitTambahSepatu(event)">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-700 mb-1"
+              >Ukuran Size (Contoh: 44)</label
+            >
+            <input
+              type="number"
+              id="inputSizeSepatu"
+              required
+              placeholder="38"
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
+            />
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-700 mb-1"
+              >Harga Sewa (Rp)</label
+            >
+            <input
+              type="number"
+              id="inputHargaSepatu"
+              required
+              value="6000"
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
+            />
+          </div>
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-slate-700 mb-1"
+              >Jumlah Stok Awal (Pasang)</label
+            >
+            <input
+              type="number"
+              id="inputStokSepatu"
+              required
+              value="10"
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
+            />
+          </div>
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              onclick="closeModalSepatu()"
+              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium shadow"
+            >
+              Simpan Size
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC & MODERN MODAL INTERACTION -->
+    <script>
+      const WEB_APP_URL =
+        "https://script.google.com/macros/s/AKfycbx5ISQJLDkCSymjI5sQmoD-fRjH1uRSlMK0DyYUWRjgC92LUGSgUD6LQeYNCYGtX772/exec";
+
+      let chartPSInstance = null;
+      let chartSepatuInstance = null;
+      let chartPieInstance = null;
+
+      // Sistem Modal Modern Pengganti Alert & Confirm
+      function showModal(title, message, type = "info", callback = null) {
+        document.getElementById("modalTitle").textContent = title;
+        document.getElementById("modalMessage").textContent = message;
+        const iconEl = document.getElementById("modalIcon");
+        const btnContainer = document.getElementById("modalButtons");
+
+        if (type === "success") iconEl.textContent = "✅";
+        else if (type === "error") iconEl.textContent = "❌";
+        else if (type === "confirm") iconEl.textContent = "⚠️";
+        else iconEl.textContent = "ℹ️";
+
+        if (type === "confirm" && callback) {
+          btnContainer.innerHTML = `
+            <button onclick="closeModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium text-sm transition">Batal</button>
+            <button id="modalConfirmBtn" class="w-1/2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium shadow text-sm transition">Ya, Lanjutkan</button>
+          `;
+          document.getElementById("modalConfirmBtn").onclick = () => {
+            closeModal();
+            callback();
+          };
+        } else {
+          btnContainer.innerHTML = `<button onclick="closeModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium shadow text-sm transition">Tutup</button>`;
+        }
+
+        document.getElementById("appModal").classList.remove("hidden");
+        document.getElementById("appModal").classList.add("flex");
+      }
+
+      function closeModal() {
+        document.getElementById("appModal").classList.remove("flex");
+        document.getElementById("appModal").classList.add("hidden");
+      }
+
+      function switchPage(pageId) {
+        document.getElementById("page-utama").classList.add("hidden");
+        document.getElementById("page-ps").classList.add("hidden");
+        document.getElementById("page-sepatu").classList.add("hidden");
+
+        document.getElementById("nav-utama").className =
+          "w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition hover:bg-slate-800 text-slate-300";
+        document.getElementById("nav-ps").className =
+          "w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition hover:bg-slate-800 text-slate-300";
+        document.getElementById("nav-sepatu").className =
+          "w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition hover:bg-slate-800 text-slate-300";
+
+        document.getElementById("page-" + pageId).classList.remove("hidden");
+        document.getElementById("nav-" + pageId).className =
+          "w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30";
+
+        if (pageId === "utama") {
+          document.getElementById("pageTitle").textContent =
+            "Ringkasan Pendapatan & Performa";
+          document.getElementById("pageDesc").textContent =
+            "Monitoring real-time seluruh unit penyewaan.";
+        } else if (pageId === "ps") {
+          document.getElementById("pageTitle").textContent =
+            "Kontrol Unit PlayStation";
+          document.getElementById("pageDesc").textContent =
+            "Manajemen ketersediaan dan manipulasi unit PS.";
+        } else if (pageId === "sepatu") {
+          document.getElementById("pageTitle").textContent =
+            "Kontrol Stok Sepatu Futsal";
+          document.getElementById("pageDesc").textContent =
+            "Manajemen ukuran, penambahan/pengurangan stok, dan hapus size sepatu.";
+        }
+      }
+
+      async function initDashboard() {
+        try {
+          const response = await fetch(WEB_APP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "getDashboardData" }),
+          });
+          const result = await response.json();
+
+          if (result.status === "success") {
+            updateSummary(result.summary);
+            renderCharts(result.chartPS, result.chartSepatu, result.summary);
+            renderTabelPS(result.stokPS);
+            renderTabelSepatu(result.stokSepatu);
+          } else {
+            showModal(
+              "Gagal",
+              "Gagal memuat data dashboard: " + result.message,
+              "error",
+            );
+          }
+        } catch (error) {
+          console.error(error);
+          showModal(
+            "Error",
+            "Terjadi kesalahan koneksi jaringan server.",
+            "error",
+          );
+        }
+      }
+
+      function updateSummary(summary) {
+        document.getElementById("valFutsal").textContent =
+          `Rp ${Number(summary.futsal).toLocaleString("id-ID")}`;
+        document.getElementById("valPS").textContent =
+          `Rp ${Number(summary.ps).toLocaleString("id-ID")}`;
+        document.getElementById("valSepatu").textContent =
+          `Rp ${Number(summary.sepatu).toLocaleString("id-ID")}`;
+
+        document.getElementById("valPsTersewa").textContent = summary.psTersewa;
+        document.getElementById("valPsTersedia").textContent =
+          summary.psTersedia;
+
+        document.getElementById("valSepatuTersewa").textContent =
+          summary.sepatuTersewa;
+        document.getElementById("valSepatuTersedia").textContent =
+          summary.sepatuTersedia;
+      }
+
+      function renderCharts(dataPS, dataSepatu, summary) {
+        const ctxPS = document.getElementById("chartPS").getContext("2d");
+        if (chartPSInstance) chartPSInstance.destroy();
+        chartPSInstance = new Chart(ctxPS, {
+          type: "bar",
+          data: {
+            labels: Object.keys(dataPS),
+            datasets: [
+              {
+                label: "Jumlah Sewa",
+                data: Object.values(dataPS),
+                backgroundColor: "#6366f1",
+                borderRadius: 8,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+          },
+        });
+
+        const ctxSepatu = document
+          .getElementById("chartSepatu")
+          .getContext("2d");
+        if (chartSepatuInstance) chartSepatuInstance.destroy();
+        chartSepatuInstance = new Chart(ctxSepatu, {
+          type: "bar",
+          data: {
+            labels: Object.keys(dataSepatu),
+            datasets: [
+              {
+                label: "Pasang Tersewa",
+                data: Object.values(dataSepatu),
+                backgroundColor: "#f59e0b",
+                borderRadius: 8,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+          },
+        });
+
+        const ctxPie = document.getElementById("chartPie").getContext("2d");
+        if (chartPieInstance) chartPieInstance.destroy();
+        chartPieInstance = new Chart(ctxPie, {
+          type: "doughnut",
+          data: {
+            labels: ["Futsal", "PlayStation", "Sepatu"],
+            datasets: [
+              {
+                data: [summary.futsal, summary.ps, summary.sepatu],
+                backgroundColor: ["#10b981", "#6366f1", "#f59e0b"],
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: { responsive: true, maintainAspectRatio: false },
+        });
+      }
+
+      function renderTabelPS(listPS) {
+        const tbody = document.getElementById("tabelStokPS");
+        tbody.innerHTML = "";
+        listPS.forEach((ps) => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+            <td class="py-3 px-4 font-mono text-xs text-slate-500">${ps.idPS}</td>
+            <td class="py-3 px-4 font-semibold text-slate-800">${ps.namaUnit}</td>
+            <td class="py-3 px-4 text-slate-600">Rp ${Number(ps.hargaPerJam).toLocaleString("id-ID")}</td>
+            <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${ps.status === "Terpakai" ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}">${ps.status}</span></td>
+            <td class="py-3 px-4 text-center">
+              <button onclick="hapusUnitPS('${ps.idPS}')" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs font-medium transition">Hapus</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function renderTabelSepatu(listSepatu) {
+        const tbody = document.getElementById("tabelStokSepatu");
+        tbody.innerHTML = "";
+        listSepatu.forEach((spt) => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+            <td class="py-3 px-4 font-bold text-slate-800">Size ${spt.size}</td>
+            <td class="py-3 px-4 text-slate-600">Rp ${Number(spt.hargaSewa).toLocaleString("id-ID")}</td>
+            <td class="py-3 px-4"><span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold">${spt.stokTersedia} psg</span></td>
+            <td class="py-3 px-4"><span class="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-full text-xs font-bold">${spt.stokDipinjam || 0} psg</span></td>
+            <td class="py-3 px-4 text-center flex items-center justify-center gap-2">
+              <input type="number" id="manipulasi_${spt.size}" value="0" class="w-20 border border-slate-200 rounded-lg px-2 py-1 text-center text-xs" placeholder="± Qty" />
+              <button onclick="updateStokSepatu(${spt.size})" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-medium transition">Update</button>
+            </td>
+            <td class="py-3 px-4 text-center">
+              <button onclick="hapusSizeSepatu(${spt.size})" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg text-xs font-medium transition">Hapus Size</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function openModalTambahPS() {
+        document.getElementById("modalTambahPS").classList.remove("hidden");
+        document.getElementById("modalTambahPS").classList.add("flex");
+      }
+      function closeModalPS() {
+        document.getElementById("modalTambahPS").classList.remove("flex");
+        document.getElementById("modalTambahPS").classList.add("hidden");
+      }
+
+      function openModalTambahSepatu() {
+        document.getElementById("modalTambahSepatu").classList.remove("hidden");
+        document.getElementById("modalTambahSepatu").classList.add("flex");
+      }
+      function closeModalSepatu() {
+        document.getElementById("modalTambahSepatu").classList.remove("flex");
+        document.getElementById("modalTambahSepatu").classList.add("hidden");
+      }
+
+      async function submitTambahPS(e) {
+        e.preventDefault();
+        const namaUnit = document.getElementById("inputNamaPS").value;
+        const harga = document.getElementById("inputHargaPS").value;
+
+        try {
+          const res = await fetch(WEB_APP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "manipulasiStokPS",
+              mode: "tambah",
+              namaUnit: namaUnit,
+              harga: harga,
+            }),
+          });
+          const json = await res.json();
+          if (json.status === "success") {
+            closeModalPS();
+            showModal(
+              "Sukses",
+              "Unit PlayStation baru berhasil ditambahkan!",
+              "success",
+            );
+            initDashboard();
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      async function hapusUnitPS(idPS) {
+        showModal(
+          "Konfirmasi Hapus",
+          "Yakin ingin menghapus unit PS ini dari sistem?",
+          "confirm",
+          async () => {
+            try {
+              const res = await fetch(WEB_APP_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({
+                  action: "manipulasiStokPS",
+                  mode: "hapus",
+                  idPS: idPS,
+                }),
+              });
+              const json = await res.json();
+              if (json.status === "success") {
+                showModal("Sukses", "Unit PS berhasil dihapus.", "success");
+                initDashboard();
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          },
+        );
+      }
+
+      async function submitTambahSepatu(e) {
+        e.preventDefault();
+        const size = document.getElementById("inputSizeSepatu").value;
+        const harga = document.getElementById("inputHargaSepatu").value;
+        const stok = document.getElementById("inputStokSepatu").value;
+
+        try {
+          const res = await fetch(WEB_APP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "manipulasiStokSepatu",
+              size: size,
+              harga: harga,
+              tambahStok: stok,
+            }),
+          });
+          const json = await res.json();
+          if (json.status === "success") {
+            closeModalSepatu();
+            showModal(
+              "Sukses",
+              `Size sepatu ${size} berhasil ditambahkan!`,
+              "success",
+            );
+            initDashboard();
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      async function updateStokSepatu(size) {
+        const val =
+          parseInt(document.getElementById(`manipulasi_${size}`).value) || 0;
+        if (val === 0) {
+          showModal(
+            "Peringatan",
+            "Masukkan jumlah perubahan stok (bisa positif/tambah atau negatif/kurang)!",
+            "error",
+          );
+          return;
+        }
+
+        try {
+          const res = await fetch(WEB_APP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "manipulasiStokSepatu",
+              size: size,
+              tambahStok: val,
+            }),
+          });
+          const json = await res.json();
+          if (json.status === "success") {
+            showModal(
+              "Sukses",
+              "Stok pasang sepatu berhasil diperbarui!",
+              "success",
+            );
+            initDashboard();
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      async function hapusSizeSepatu(size) {
+        showModal(
+          "Konfirmasi Hapus",
+          `Yakin ingin menghapus master size sepatu ukuran ${size}?`,
+          "confirm",
+          async () => {
+            try {
+              const res = await fetch(WEB_APP_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ action: "hapusStokSepatu", size: size }),
+              });
+              const json = await res.json();
+              if (json.status === "success") {
+                showModal(
+                  "Sukses",
+                  `Size sepatu ${size} berhasil dihapus.`,
+                  "success",
+                );
+                initDashboard();
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          },
+        );
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kasir - Penyewaan Sepatu Futsal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 font-sans antialiased" onload="loadStokSepatu()">
+    <div class="min-h-screen flex flex-col">
+      <!-- Header Navbar -->
+      <header
+        class="bg-gray-900 text-white shadow-md py-4 px-6 flex justify-between items-center"
+      >
+        <h1 class="text-xl font-bold tracking-wide">Sistem Kasir Sepatu</h1>
+        <div class="space-x-4">
+          <a
+            href="futsal.html"
+            class="hover:text-gray-300 text-sm font-semibold"
+            >Futsal</a
+          >
+          <a href="ps.html" class="hover:text-gray-300 text-sm font-semibold"
+            >PlayStation</a
+          >
+          <a
+            href="sepatu.html"
+            class="bg-blue-600 px-3 py-2 rounded text-sm font-semibold"
+            >Sepatu</a
+          >
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="flex-grow container mx-auto px-4 py-8 max-w-4xl">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">
+            Manajemen Penyewaan & Pengembalian Sepatu
+          </h2>
+          <button
+            onclick="loadStokSepatu()"
+            class="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded-lg font-medium shadow transition text-sm"
+          >
+            Refresh Stok
+          </button>
+        </div>
+
+        <!-- Tombol Tab / Toggle Menu -->
+        <div class="flex space-x-3 mb-6">
+          <button
+            onclick="switchTab('sewa')"
+            id="btnTabSewa"
+            class="flex-1 py-3 rounded-xl font-semibold transition shadow bg-green-600 text-white flex justify-center items-center gap-2"
+          >
+            <span>📥</span> Form Transaksi Sewa Sepatu
+          </button>
+          <button
+            onclick="switchTab('kembali')"
+            id="btnTabKembali"
+            class="flex-1 py-3 rounded-xl font-semibold transition shadow bg-gray-200 text-gray-700 flex justify-center items-center gap-2"
+          >
+            <span>📤</span> Form Pengembalian Sepatu
+          </button>
+        </div>
+
+        <!-- SEKSI 1: TABEL & FORM SEWA SEPATU -->
+        <div
+          id="sectionSewa"
+          class="bg-white rounded-2xl shadow-md p-6 transition-all"
+        >
+          <h3
+            class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100"
+          >
+            Formulir Penyewaan Sepatu Baru
+          </h3>
+          <form id="formSewaSepatu" onsubmit="submitSewaSepatu(event)">
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Nama Customer</label
+              >
+              <input
+                type="text"
+                id="namaCustomer"
+                required
+                placeholder="Masukkan nama peminjam..."
+                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Pilih Ukuran & Jumlah (Qty Sewa)</label
+              >
+              <div
+                class="border border-gray-200 rounded-xl overflow-hidden shadow-sm"
+              >
+                <table class="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr
+                      class="bg-gray-50 text-gray-600 uppercase text-xs font-bold tracking-wider"
+                    >
+                      <th class="py-3 px-4">Ukuran (Size)</th>
+                      <th class="py-3 px-4">Harga Sewa</th>
+                      <th class="py-3 px-4">Stok Tersedia</th>
+                      <th class="py-3 px-4 text-center">Jumlah Sewa (Qty)</th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="tabelSewaSepatu"
+                    class="divide-y divide-gray-200 text-gray-700"
+                  >
+                    <tr>
+                      <td colspan="4" class="py-6 text-center text-gray-400">
+                        Memuat data...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <button
+                type="submit"
+                class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-medium shadow transition"
+              >
+                Simpan Sewa & Cetak Struk
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- SEKSI 2: TABEL & FORM PENGEMBALIAN SEPATU (Disembunyikan secara default) -->
+        <div
+          id="sectionKembali"
+          class="bg-white rounded-2xl shadow-md p-6 transition-all hidden"
+        >
+          <h3
+            class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100"
+          >
+            Formulir Pengembalian Unit Sepatu
+          </h3>
+          <form id="formKembaliSepatu" onsubmit="submitKembaliSepatu(event)">
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Keterangan / Nama Peminjam (Opsional)</label
+              >
+              <input
+                type="text"
+                id="namaPengembali"
+                placeholder="Catatan pengembalian..."
+                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Pilih Ukuran & Jumlah yang Dikembalikan</label
+              >
+              <div
+                class="border border-gray-200 rounded-xl overflow-hidden shadow-sm"
+              >
+                <table class="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr
+                      class="bg-gray-50 text-gray-600 uppercase text-xs font-bold tracking-wider"
+                    >
+                      <th class="py-3 px-4">Ukuran (Size)</th>
+                      <th class="py-3 px-4">Sedang Dipinjam</th>
+                      <th class="py-3 px-4 text-center">
+                        Jumlah Kembali (Qty)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="tabelKembaliSepatu"
+                    class="divide-y divide-gray-200 text-gray-700"
+                  >
+                    <tr>
+                      <td colspan="3" class="py-6 text-center text-gray-400">
+                        Memuat data...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <button
+                type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-medium shadow transition"
+              >
+                Proses Pengembalian Stok
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+
+    <!-- MODERN MODAL NOTIFIKASI -->
+    <div
+      id="appModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center p-4 z-50"
+    >
+      <div
+        class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center transform transition-all"
+      >
+        <div id="modalIcon" class="text-4xl mb-3">ℹ️</div>
+        <h3 id="modalTitle" class="text-lg font-bold text-gray-800 mb-2">
+          Notifikasi
+        </h3>
+        <p id="modalMessage" class="text-sm text-gray-600 mb-6">
+          Pesan informasi sistem.
+        </p>
+        <div id="modalButtons" class="flex justify-center space-x-3">
+          <button
+            onclick="closeModal()"
+            class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+      const WEB_APP_URL =
+        "https://script.google.com/macros/s/AKfycbx5ISQJLDkCSymjI5sQmoD-fRjH1uRSlMK0DyYUWRjgC92LUGSgUD6LQeYNCYGtX772/exec";
+      let stokSepatuCache = [];
+
+      // Fungsi untuk Toggle / Ganti Tab Tampilan
+      function switchTab(tab) {
+        const secSewa = document.getElementById("sectionSewa");
+        const secKembali = document.getElementById("sectionKembali");
+        const btnSewa = document.getElementById("btnTabSewa");
+        const btnKembali = document.getElementById("btnTabKembali");
+
+        if (tab === "sewa") {
+          secSewa.classList.remove("hidden");
+          secKembali.classList.add("hidden");
+          btnSewa.className =
+            "flex-1 py-3 rounded-xl font-semibold transition shadow bg-green-600 text-white flex justify-center items-center gap-2";
+          btnKembali.className =
+            "flex-1 py-3 rounded-xl font-semibold transition shadow bg-gray-200 text-gray-700 flex justify-center items-center gap-2";
+        } else {
+          secSewa.classList.add("hidden");
+          secKembali.classList.remove("hidden");
+          btnKembali.className =
+            "flex-1 py-3 rounded-xl font-semibold transition shadow bg-blue-600 text-white flex justify-center items-center gap-2";
+          btnSewa.className =
+            "flex-1 py-3 rounded-xl font-semibold transition shadow bg-gray-200 text-gray-700 flex justify-center items-center gap-2";
+        }
+      }
+
+      function showModal(title, message, type = "info", callback = null) {
+        document.getElementById("modalTitle").textContent = title;
+        document.getElementById("modalMessage").textContent = message;
+        const iconEl = document.getElementById("modalIcon");
+        const btnContainer = document.getElementById("modalButtons");
+
+        if (type === "success") iconEl.textContent = "✅";
+        else if (type === "error") iconEl.textContent = "❌";
+        else if (type === "confirm") iconEl.textContent = "⚠️";
+        else iconEl.textContent = "ℹ️";
+
+        if (type === "confirm" && callback) {
+          btnContainer.innerHTML = `
+            <button onclick="closeModal()" class="w-1/2 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-xl font-medium">Batal</button>
+            <button id="modalConfirmBtn" class="w-1/2 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow">Ya, Lanjutkan</button>
+          `;
+          document.getElementById("modalConfirmBtn").onclick = () => {
+            closeModal();
+            callback();
+          };
+        } else {
+          btnContainer.innerHTML = `<button onclick="closeModal()" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow">Tutup</button>`;
+        }
+        document.getElementById("appModal").classList.remove("hidden");
+        document.getElementById("appModal").classList.add("flex");
+      }
+
+      function closeModal() {
+        document.getElementById("appModal").classList.remove("flex");
+        document.getElementById("appModal").classList.add("hidden");
+      }
+
+      async function loadStokSepatu() {
+        const tbodySewa = document.getElementById("tabelSewaSepatu");
+        const tbodyKembali = document.getElementById("tabelKembaliSepatu");
+        tbodySewa.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-gray-500">Memuat stok sepatu...</td></tr>`;
+        tbodyKembali.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-gray-500">Memuat stok pinjaman...</td></tr>`;
+
+        try {
+          const response = await fetch(WEB_APP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "getStokSepatu" }),
+          });
+          const result = await response.json();
+
+          if (result.status === "success") {
+            stokSepatuCache = result.data || [];
+            renderTabel(stokSepatuCache);
+          } else {
+            showModal("Gagal", "Gagal memuat stok: " + result.message, "error");
+          }
+        } catch (error) {
+          console.error(error);
+          showModal("Error", "Kesalahan koneksi jaringan.", "error");
+        }
+      }
+
+      function renderTabel(dataList) {
+        const tbodySewa = document.getElementById("tabelSewaSepatu");
+        const tbodyKembali = document.getElementById("tabelKembaliSepatu");
+        tbodySewa.innerHTML = "";
+        tbodyKembali.innerHTML = "";
+
+        dataList.forEach((item) => {
+          // Baris Tabel Sewa
+          const trSewa = document.createElement("tr");
+          trSewa.className = "hover:bg-gray-50 transition";
+          trSewa.innerHTML = `
+            <td class="py-3 px-4 font-bold text-gray-900">Size ${item.size}</td>
+            <td class="py-3 px-4 text-green-600 font-semibold">Rp ${Number(item.hargaSewa).toLocaleString("id-ID")}</td>
+            <td class="py-3 px-4"><span class="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">${item.stokTersedia} pasang</span></td>
+            <td class="py-3 px-4 text-center">
+              <input type="number" id="qty_sewa_${item.size}" min="0" max="${item.stokTersedia}" value="0" class="w-20 border border-gray-300 rounded-lg px-2 py-1.5 text-center focus:ring-2 focus:ring-green-500" />
+            </td>
+          `;
+          tbodySewa.appendChild(trSewa);
+
+          // Baris Tabel Pengembalian
+          const trKembali = document.createElement("tr");
+          trKembali.className = "hover:bg-gray-50 transition";
+          trKembali.innerHTML = `
+            <td class="py-3 px-4 font-bold text-gray-900">Size ${item.size}</td>
+            <td class="py-3 px-4"><span class="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold">${item.stokDipinjam || 0} pasang</span></td>
+            <td class="py-3 px-4 text-center">
+              <input type="number" id="qty_kembali_${item.size}" min="0" max="${item.stokDipinjam || 0}" value="0" class="w-20 border border-gray-300 rounded-lg px-2 py-1.5 text-center focus:ring-2 focus:ring-blue-500" />
+            </td>
+          `;
+          tbodyKembali.appendChild(trKembali);
+        });
+      }
+
+      async function submitSewaSepatu(event) {
+        event.preventDefault();
+        const nama = document.getElementById("namaCustomer").value;
+        let itemsSewa = [];
+
+        stokSepatuCache.forEach((item) => {
+          const qty =
+            parseInt(document.getElementById(`qty_sewa_${item.size}`).value) ||
+            0;
+          if (qty > 0) itemsSewa.push({ size: item.size, qty: qty });
+        });
+
+        if (itemsSewa.length === 0) {
+          showModal(
+            "Peringatan",
+            "Pilih minimal 1 pasang sepatu untuk disewa!",
+            "error",
+          );
+          return;
+        }
+
+        try {
+          const response = await fetch(WEB_APP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "sewaSepatu",
+              nama: nama,
+              items: itemsSewa,
+            }),
+          });
+
+          const result = await response.json();
+          if (result.status === "success") {
+            showModal("Sukses", result.message, "success");
+            document.getElementById("formSewaSepatu").reset();
+            loadStokSepatu();
+
+            let detailStruk = itemsSewa
+              .map((i) => `Size ${i.size} (${i.qty} pasang)`)
+              .join(", ");
+            triggerPrintStruk({
+              id: result.idPendapatan,
+              nama: nama,
+              detail: `Sewa Sepatu: ${detailStruk}`,
+              total: result.totalHarga,
+            });
+          } else {
+            showModal("Gagal", result.message, "error");
+          }
+        } catch (error) {
+          console.error(error);
+          showModal("Error", "Kesalahan koneksi jaringan.", "error");
+        }
+      }
+
+      async function submitKembaliSepatu(event) {
+        event.preventDefault();
+        let itemsKembali = [];
+
+        stokSepatuCache.forEach((item) => {
+          const qty =
+            parseInt(
+              document.getElementById(`qty_kembali_${item.size}`).value,
+            ) || 0;
+          if (qty > 0) itemsKembali.push({ size: item.size, qty: qty });
+        });
+
+        if (itemsKembali.length === 0) {
+          showModal(
+            "Peringatan",
+            "Pilih minimal 1 pasang sepatu yang dikembalikan!",
+            "error",
+          );
+          return;
+        }
+
+        try {
+          const response = await fetch(WEB_APP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "kembaliSepatu",
+              items: itemsKembali,
+            }),
+          });
+
+          const result = await response.json();
+          if (result.status === "success") {
+            showModal("Sukses", result.message, "success");
+            document.getElementById("formKembaliSepatu").reset();
+            loadStokSepatu();
+          } else {
+            showModal("Gagal", result.message, "error");
+          }
+        } catch (error) {
+          console.error(error);
+          showModal("Error", "Kesalahan koneksi jaringan.", "error");
+        }
+      }
+
+      // Fungsi Print Struk Format Proper
+      function triggerPrintStruk(data) {
+        const existingIframe = document.getElementById("printFrame");
+        if (existingIframe) existingIframe.remove();
+
+        const iframe = document.createElement("iframe");
+        iframe.id = "printFrame";
+        iframe.style.position = "fixed";
+        iframe.style.width = "0";
+        iframe.style.height = "0";
+        iframe.style.border = "none";
+        document.body.appendChild(iframe);
+
+        let itemsHtml = "";
+        if (data.detail.includes(",")) {
+          let parts = data.detail.split(":");
+          let prefix = parts[0] ? parts[0] + ":" : "Item:";
+          let listItems = parts[1] ? parts[1].split(",") : [data.detail];
+          itemsHtml = `<strong>${prefix}</strong><br>`;
+          listItems.forEach((item) => {
+            itemsHtml += `- ${item.trim()}<br>`;
+          });
+        } else {
+          itemsHtml = `Item: ${data.detail}`;
+        }
+
+        const htmlContent = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <style>
+                  @page { size: 58mm auto; margin: 0; }
+                  body {
+                      width: 50mm;
+                      font-family: 'Courier New', Courier, monospace;
+                      font-size: 12px;
+                      line-height: 1.3;
+                      margin: 0 auto;
+                      padding: 4mm 2mm;
+                      box-sizing: border-box;
+                      word-wrap: break-word;
+                      word-break: break-word;
+                      color: #000;
+                  }
+                  .center { text-align: center; }
+                  .line { border-bottom: 1px dashed #000; margin: 6px 0; width: 100%; }
+                  .bold { font-weight: bold; }
+              </style>
+          </head>
+          <body>
+              <div class="center">
+                  <span class="bold" style="font-size: 14px;">BARUMBA</span><br>
+                  "Penyewaan Sepatu Futsal"
+              </div>
+              <div class="line"></div>
+              ID  : ${data.id}<br>
+              Tgl : ${new Date().toLocaleString("id-ID")}<br>
+              Cust: ${data.nama}<br>
+              <div class="line"></div>
+              ${itemsHtml}
+              <div class="line"></div>
+              <span class="bold">TOTAL : ${isNaN(data.total) ? data.total : "Rp " + Number(data.total).toLocaleString("id-ID")}</span><br>
+              <div class="line"></div>
+              <div class="center">
+                  Terima Kasih!<br>
+                  Selamat Bermain
+              </div>
+              <div class="line"></div>
+          </body>
+          </html>
+        `;
+
+        iframe.contentDocument.write(htmlContent);
+        iframe.contentDocument.close();
+
+        setTimeout(() => {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        }, 500);
+      }
+    </script>
+  </body>
+</html>

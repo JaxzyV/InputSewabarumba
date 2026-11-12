@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kasir - Penyewaan PlayStation</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 font-sans antialiased" onload="loadStokPS()">
+    <div class="min-h-screen flex flex-col">
+      <!-- Header Navbar -->
+      <header
+        class="bg-gray-900 text-white shadow-md py-4 px-6 flex justify-between items-center"
+      >
+        <h1 class="text-xl font-bold tracking-wide">
+          Sistem Kasir PlayStation
+        </h1>
+        <div class="space-x-4">
+          <a
+            href="futsal.html"
+            class="hover:text-gray-300 text-sm font-semibold"
+            >Futsal</a
+          >
+          <a
+            href="ps.html"
+            class="bg-blue-600 px-3 py-2 rounded text-sm font-semibold"
+            >PlayStation</a
+          >
+          <a
+            href="sepatu.html"
+            class="hover:text-gray-300 text-sm font-semibold"
+            >Sepatu</a
+          >
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">
+            Manajemen Unit PlayStation
+          </h2>
+          <button
+            onclick="loadStokPS()"
+            class="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded-lg font-medium shadow transition text-sm"
+          >
+            Refresh Status Unit
+          </button>
+        </div>
+
+        <!-- Grid Daftar Unit PS -->
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          id="psContainer"
+        >
+          <!-- Card Unit akan dimuat secara dinamis via JavaScript -->
+          <div
+            class="bg-white rounded-xl shadow-md p-6 text-center text-gray-400 col-span-full"
+          >
+            Memuat data unit PlayStation dari server...
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- MODERN MODAL NOTIFIKASI -->
+    <div
+      id="appModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center p-4 z-50"
+    >
+      <div
+        class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center transform transition-all"
+      >
+        <div id="modalIcon" class="text-4xl mb-3">ℹ️</div>
+        <h3 id="modalTitle" class="text-lg font-bold text-gray-800 mb-2">
+          Notifikasi
+        </h3>
+        <p id="modalMessage" class="text-sm text-gray-600 mb-6">
+          Pesan informasi sistem.
+        </p>
+        <div id="modalButtons" class="flex justify-center space-x-3">
+          <button
+            onclick="closeModal()"
+            class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL SEWA / EXTEND PS -->
+    <div
+      id="psModal"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center p-4 z-40"
+    >
+      <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+        <h3 id="psModalTitle" class="text-xl font-bold text-gray-800 mb-4">
+          Form Sewa PlayStation
+        </h3>
+        <form id="psForm" onsubmit="submitSewaPS(event)">
+          <input type="hidden" id="modalIdPS" />
+          <input type="hidden" id="modalMode" value="sewa" />
+          <!-- 'sewa' atau 'extend' -->
+
+          <div id="groupNama" class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Nama Customer</label
+            >
+            <input
+              type="text"
+              id="psNama"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+              required
+            />
+          </div>
+
+          <div class="mb-4">
+            <label
+              id="labelDurasi"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >Durasi Sewa (Jam)</label
+            >
+            <input
+              type="number"
+              id="psDurasi"
+              value="1"
+              min="0.5"
+              step="0.5"
+              required
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+
+          <div class="flex justify-end space-x-3">
+            <button
+              type="button"
+              onclick="closePsModal()"
+              class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow"
+            >
+              Proses Transaksi
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- JAVASCRIPT INTEGRASI BACKEND & PRINT -->
+    <script>
+      const WEB_APP_URL =
+        "https://script.google.com/macros/s/AKfycbx5ISQJLDkCSymjI5sQmoD-fRjH1uRSlMK0DyYUWRjgC92LUGSgUD6LQeYNCYGtX772/exec";
+      let allPsCache = [];
+
+      // Modal Modern Pengganti Alert
+      function showModal(title, message, type = "info", callback = null) {
+        document.getElementById("modalTitle").textContent = title;
+        document.getElementById("modalMessage").textContent = message;
+        const iconEl = document.getElementById("modalIcon");
+        const btnContainer = document.getElementById("modalButtons");
+
+        if (type === "success") iconEl.textContent = "✅";
+        else if (type === "error") iconEl.textContent = "❌";
+        else if (type === "confirm") iconEl.textContent = "⚠️";
+        else iconEl.textContent = "ℹ️";
+
+        if (type === "confirm" && callback) {
+          btnContainer.innerHTML = `
+            <button onclick="closeModal()" class="w-1/2 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-xl font-medium">Batal</button>
+            <button id="modalConfirmBtn" class="w-1/2 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow">Ya, Lanjutkan</button>
+          `;
+          document.getElementById("modalConfirmBtn").onclick = () => {
+            closeModal();
+            callback();
+          };
+        } else {
+          btnContainer.innerHTML = `<button onclick="closeModal()" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow">Tutup</button>`;
+        }
+
+        document.getElementById("appModal").classList.remove("hidden");
+        document.getElementById("appModal").classList.add("flex");
+      }
+
+      function closeModal() {
+        document.getElementById("appModal").classList.remove("flex");
+        document.getElementById("appModal").classList.add("hidden");
+      }
+
+      // Ambil Data Stok PS dari Backend
+      async function loadStokPS() {
+        const container = document.getElementById("psContainer");
+        container.innerHTML = `<div class="bg-white rounded-xl shadow-md p-6 text-center text-gray-500 col-span-full">Memuat status unit PlayStation...</div>`;
+
+        try {
+          const response = await fetch(WEB_APP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "getStokPS" }),
+          });
+          const result = await response.json();
+
+          if (result.status === "success") {
+            allPsCache = result.data || [];
+            renderPsCards(allPsCache);
+          } else {
+            showModal(
+              "Gagal",
+              "Gagal memuat unit PS: " + result.message,
+              "error",
+            );
+          }
+        } catch (error) {
+          console.error(error);
+          container.innerHTML = `<div class="bg-white rounded-xl shadow-md p-6 text-center text-red-500 col-span-full">Kesalahan koneksi jaringan ke server.</div>`;
+        }
+      }
+
+      function renderPsCards(psList) {
+        const container = document.getElementById("psContainer");
+        container.innerHTML = "";
+
+        if (psList.length === 0) {
+          container.innerHTML = `<div class="bg-white rounded-xl shadow-md p-6 text-center text-gray-400 col-span-full">Tidak ada data unit PlayStation.</div>`;
+          return;
+        }
+
+        psList.forEach((ps) => {
+          const isTerpakai = ps.status === "Terpakai";
+          const card = document.createElement("div");
+          card.className = `bg-white rounded-xl shadow-md p-6 border-t-4 ${isTerpakai ? "border-red-500" : "border-green-500"} flex flex-col justify-between`;
+
+          card.innerHTML = `
+            <div>
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <span class="text-xs font-mono text-gray-400">${ps.idPS}</span>
+                  <h3 class="text-xl font-bold text-gray-800">${ps.namaUnit}</h3>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase ${isTerpakai ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}">
+                  ${ps.status}
+                </span>
+              </div>
+              <p class="text-sm text-gray-600 mb-4">Tarif: <span class="font-semibold text-gray-900">Rp ${Number(ps.hargaPerJam).toLocaleString("id-ID")} / jam</span></p>
+              
+              ${
+                isTerpakai
+                  ? `
+                <div class="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 mb-4 space-y-1">
+                  <p><strong>Customer:</strong> ${ps.customer}</p>
+                  <p><strong>Mulai:</strong> ${ps.waktuMulai}</p>
+                  <p class="text-red-600"><strong>Selesai:</strong> ${ps.waktuSelesai}</p>
+                </div>
+              `
+                  : `
+                <div class="bg-gray-50 rounded-lg p-3 text-xs text-gray-400 mb-4 text-center italic">
+                  Unit kosong, siap disewa.
+                </div>
+              `
+              }
+            </div>
+
+            <div>
+              ${
+                isTerpakai
+                  ? `
+                <div class="flex gap-2">
+                  <button onclick='openPsModal("${ps.idPS}", "extend")' class="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg text-sm font-semibold shadow transition">
+                    + Extend Waktu
+                  </button>
+                </div>
+              `
+                  : `
+                <button onclick='openPsModal("${ps.idPS}", "sewa")' class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-semibold shadow transition">
+                  Sewa Unit Ini
+                </button>
+              `
+              }
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      function openPsModal(idPS, mode) {
+        document.getElementById("modalIdPS").value = idPS;
+        document.getElementById("modalMode").value = mode;
+        const titleEl = document.getElementById("psModalTitle");
+        const groupNama = document.getElementById("groupNama");
+        const labelDurasi = document.getElementById("labelDurasi");
+
+        if (mode === "sewa") {
+          titleEl.textContent = `Sewa Unit (${idPS})`;
+          groupNama.style.display = "block";
+          document.getElementById("psNama").required = true;
+          document.getElementById("psNama").value = "";
+          labelDurasi.textContent = "Durasi Sewa (Jam)";
+        } else {
+          titleEl.textContent = `Extend Waktu Unit (${idPS})`;
+          groupNama.style.display = "none";
+          document.getElementById("psNama").required = false;
+          labelDurasi.textContent = "Tambah Durasi (Jam)";
+        }
+
+        document.getElementById("psDurasi").value = "1";
+        document.getElementById("psModal").classList.remove("hidden");
+        document.getElementById("psModal").classList.add("flex");
+      }
+
+      function closePsModal() {
+        document.getElementById("psModal").classList.remove("flex");
+        document.getElementById("psModal").classList.add("hidden");
+      }
+
+      async function submitSewaPS(event) {
+        event.preventDefault();
+        const idPS = document.getElementById("modalIdPS").value;
+        const mode = document.getElementById("modalMode").value;
+        const durasi = document.getElementById("psDurasi").value;
+        const nama = document.getElementById("psNama").value;
+
+        const actionName = mode === "sewa" ? "sewaPS" : "extendPS";
+        const payload =
+          mode === "sewa"
+            ? { action: actionName, idPS: idPS, nama: nama, durasi: durasi }
+            : { action: actionName, idPS: idPS, durasiTambahan: durasi };
+
+        try {
+          const response = await fetch(WEB_APP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload),
+          });
+
+          const result = await response.json();
+          if (result.status === "success") {
+            showModal("Sukses", result.message, "success");
+            closePsModal();
+            loadStokPS();
+
+            // Cetak struk otomatis
+            triggerPrintStruk({
+              id: result.idPendapatan,
+              nama: mode === "sewa" ? nama : "Pelanggan Existing",
+              detail:
+                mode === "sewa"
+                  ? `Sewa ${idPS} (${durasi} Jam)`
+                  : `Extend ${idPS} (+${durasi} Jam)`,
+              total: result.totalHarga,
+            });
+          } else {
+            showModal("Gagal", result.message, "error");
+          }
+        } catch (error) {
+          console.error(error);
+          showModal("Error", "Terjadi kesalahan koneksi ke server.", "error");
+        }
+      }
+
+      // Fungsi Cetak Struk Thermal 58mm (Proper & Rapi)
+      function triggerPrintStruk(data) {
+        const existingIframe = document.getElementById("printFrame");
+        if (existingIframe) existingIframe.remove();
+
+        const iframe = document.createElement("iframe");
+        iframe.id = "printFrame";
+        iframe.style.position = "fixed";
+        iframe.style.width = "0";
+        iframe.style.height = "0";
+        iframe.style.border = "none";
+        document.body.appendChild(iframe);
+
+        const htmlContent = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <style>
+                  @page {
+                      size: 58mm auto;
+                      margin: 0;
+                  }
+                  body {
+                      width: 50mm;
+                      font-family: 'Courier New', Courier, monospace;
+                      font-size: 12px;
+                      line-height: 1.3;
+                      margin: 0 auto;
+                      padding: 4mm 2mm;
+                      box-sizing: border-box;
+                      word-wrap: break-word;
+                      word-break: break-word;
+                      color: #000;
+                  }
+                  .center { text-align: center; }
+                  .line { 
+                      border-bottom: 1px dashed #000; 
+                      margin: 6px 0; 
+                      width: 100%;
+                  }
+                  .bold { font-weight: bold; }
+              </style>
+          </head>
+          <body>
+              <div class="center">
+                  <span class="bold" style="font-size: 14px;">BARUMBA</span><br>
+                  "Rental PlayStation"
+              </div>
+              <div class="line"></div>
+              ID  : ${data.id}<br>
+              Tgl : ${new Date().toLocaleString("id-ID")}<br>
+              Cust: ${data.nama}<br>
+              <div class="line"></div>
+              Item: ${data.detail}<br>
+              <div class="line"></div>
+              <span class="bold">TOTAL : ${isNaN(data.total) ? data.total : "Rp " + Number(data.total).toLocaleString("id-ID")}</span><br>
+              <div class="line"></div>
+              <div class="center">
+                  Terima Kasih!<br>
+                  Selamat Bermain
+              </div>
+              <div class="line"></div>
+          </body>
+          </html>
+        `;
+
+        iframe.contentDocument.write(htmlContent);
+        iframe.contentDocument.close();
+
+        setTimeout(() => {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        }, 500);
+      }
+    </script>
+  </body>
+</html>
